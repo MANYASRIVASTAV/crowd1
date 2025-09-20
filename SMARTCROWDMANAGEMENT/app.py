@@ -4,7 +4,6 @@ from flask_cors import CORS
 import cv2
 import threading
 import numpy as np
-import pickle
 from utils.heatmap import generate_heatmap
 from utils.alert import check_crowd_alert
 from ultralytics import YOLO
@@ -14,15 +13,6 @@ from ultralytics import YOLO
 # -----------------------------
 YOLO_WEIGHTS = "models/yolov8n.pt"
 model = YOLO(YOLO_WEIGHTS)
-
-# -----------------------------
-# --- Load ML Prediction Model ---
-# -----------------------------
-with open("crowd_model.pkl", "rb") as f:
-    predict_model = pickle.load(f)
-
-with open("scaler.pkl", "rb") as f:
-    scaler = pickle.load(f)
 
 # -----------------------------
 # --- Flask App ---
@@ -62,7 +52,7 @@ def detect_frame(frame):
             person_positions.append((int((x1+x2)/2), int((y1+y2)/2)))
 
     # alert beep
-    check_crowd_alert(0, person_count, CROWD_THRESHOLD)
+    check_crowd_alert(0, person_count, CROWD_THRESHOLD)  # frame_count not needed here
 
     # overlay heatmap
     frame = generate_heatmap(frame, person_positions)
@@ -82,6 +72,7 @@ def video_generator(source=0):
     global processing
     while True:
         if not processing:
+            # if not processing, send blank frame
             blank_frame = 255 * np.ones((480, 640, 3), dtype=np.uint8)
             ret2, jpeg = cv2.imencode('.jpg', blank_frame)
             frame_bytes = jpeg.tobytes()
@@ -133,30 +124,6 @@ def stop_stream():
 @app.route('/health')
 def health():
     return jsonify({"status": "ok"})
-
-# -----------------------------
-# --- Prediction Route ---
-# -----------------------------
-with open("feature_cols.pkl", "rb") as f:
-    feature_cols = pickle.load(f)
-
-# ...
-
-@app.route('/predictions/predict', methods=['POST'])
-def predict():
-    try:
-        data = request.json
-        # Arrange input features in correct order
-        features = [data[col] for col in feature_cols]
-        features = np.array(features).reshape(1, -1)
-
-        prediction = predict_model.predict(features)[0]
-        risk_score = int(prediction)
-
-        return jsonify({"risk": risk_score})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 
 # -----------------------------
 # --- Main ---
