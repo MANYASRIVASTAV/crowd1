@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crowd Dashboard</title>
+  
+  <!-- Font Awesome for icons -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/widgets.css">
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar" id="sidebar">
+    <div class="logo">
+      <a href="index.html">
+        <img src="assets/logo.png" alt="Logo">
+        <h2>CrowdMonitor</h2>
+      </a>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
+        <li><a href="#"><i class="fas fa-bell"></i> Notifications</a></li>
+        <li><a href="help-support.html"><i class="fas fa-life-ring"></i> Help & Support</a></li>
+        <li><a href="about.html"><i class="fas fa-info-circle"></i> About Us</a></li>
+      </ul>
+    </nav>
+    <button class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="header">
+      <h1>Dashboard Overview</h1>
+      <h5 class="header-description">
+    Upload real-time videos or connect CCTV feeds to monitor crowd density, detect overcrowding, track social trends, and receive live alerts for efficient crowd management.
+      </h5>
+      <div class="header-right">
+        <i class="fas fa-bell"></i>
+        <span class="notification-count">3</span>
+      </div>
+    </header>
+
+    <section class="dashboard-grid">
+      <!-- Live Feed Card -->
+      <a href="live-feed.html" class="widget card-widget">
+        <h2><i class="fas fa-video"></i> Live Video Feed</h2>
+        <p>Upload videos or view real-time feeds with crowd detection.</p>
+        <span class="card-stat">Live People Count: <strong id="peopleCount">1200</strong></span>
+        <canvas id="sparklineLive" height="40"></canvas>
+      </a>
+
+      <!-- Heatmap Card -->
+      <a href="heatmap.html" class="widget card-widget">
+        <h2><i class="fas fa-map-marker-alt"></i> Crowd Density Heatmap</h2>
+        <p>Visualize density and hotspots from videos.</p>
+        <span class="card-stat">Active Zones: <strong>5</strong></span>
+        <canvas id="sparklineHeatmap" height="40"></canvas>
+      </a>
+
+      <!-- Alerts Card -->
+      <a href="alerts.html" class="widget card-widget">
+        <h2><i class="fas fa-exclamation-triangle"></i> Alerts</h2>
+        <p>Receive notifications for overcrowding or risky situations.</p>
+        <span class="card-stat">Active Alerts: <strong id="alertCount">2</strong></span>
+        <canvas id="sparklineAlerts" height="40"></canvas>
+      </a>
+
+      <!-- Social Trends Card -->
+      <a href="social-trends.html" class="widget card-widget">
+        <h2><i class="fas fa-hashtag"></i> Social Media Trends</h2>
+        <p>Analyze trending hashtags and predict upcoming crowd gatherings.</p>
+        <span class="card-stat">Top Trend: <strong>#RCBMeetup</strong></span>
+        <canvas id="sparklineTrends" height="40"></canvas>
+      </a>
+
+      <!-- Predictions Card -->
+      <a href="predictions.html" class="widget card-widget">
+        <h2><i class="fas fa-chart-line"></i> Predicted Crowd Build-up</h2>
+        <p>View future crowd estimates based on trends and video analysis.</p>
+        <span class="card-stat">Peak Estimate: <strong id="peakCount">1500</strong></span>
+        <canvas id="sparklinePrediction" height="40"></canvas>
+      </a>
+
+      <!-- Profile Card -->
+      <a href="profile.html" class="widget card-widget">
+        <h2><i class="fas fa-user"></i> Authority Profile</h2>
+        <p>View your profile, role, and contact information.</p>
+      </a>
+
+      <!-- Contact Nearest Authority Card -->
+      <a href="contact-authority.html" class="widget card-widget">
+        <h2><i class="fas fa-map-marker-alt"></i> Contact Nearest Authority</h2>
+        <p>Locate and contact nearby personnel for quick action.</p>
+      </a>
+
+      <!-- Help & Support Card -->
+      <a href="help-support.html" class="widget card-widget">
+        <h2><i class="fas fa-life-ring"></i> Help & Support</h2>
+        <p>Access FAQs, guides, and troubleshooting assistance.</p>
+      </a>
+    </section>
+  </main>
+
+  <!-- JS Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="js/dashboard.js"></script>
+  
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    }
+  </script>
+
+</body>
+</html>

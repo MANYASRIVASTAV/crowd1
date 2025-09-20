@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Feed - Crowd Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/sidebar.css">
+  <link rel="stylesheet" href="css/widgets.css">
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+      margin-top: 20px;
+      max-width: 1200px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .widget {
+      background-color: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease;
+      width: 100%;
+    }
+    img, video {
+      width: 100%;
+      max-width: 600px;
+      height: auto;
+      border-radius: 12px;
+      border: 2px solid #007bff;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .controls button {
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    .controls button:hover {
+      background-color: #0056b3;
+    }
+    .video-upload input {
+      display: none;
+    }
+    .upload-label {
+      background-color: #28a745;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: inline-block;
+    }
+    .upload-label:hover {
+      background-color: #218838;
+    }
+    .people-count {
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="logo">
+      <img src="assets/logo.png" alt="Logo">
+      <h2>CrowdMonitor</h2>
+    </div>
+    <nav>
+      <ul>
+        <li class="active"><a href="live-feed.html">Live Feed</a></li>
+        <li><a href="heatmap.html">Heatmap</a></li>
+        <li><a href="alerts.html">Alerts</a></li>
+        <li><a href="social-trends.html">Social Trends</a></li>
+        <li><a href="predictions.html">Predictions</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="header">
+      <h1>Live Feed</h1>
+      <p>Use your camera or upload a video for real-time crowd detection.</p>
+    </header>
+
+    <section class="dashboard-grid">
+      <!-- Live Camera Widget -->
+      <div class="widget camera-widget">
+        <h2>Live Camera</h2>
+        <img id="cameraFeed" src=" http://172.19.133.170:5000/video_feed" alt="Live Camera Feed">
+        <p>Detected People Count: <span id="cameraCount">--</span></p>
+      </div>
+<!-- START/STOP Buttons -->
+  <div class="controls">
+    <button id="startCamera">Start Camera</button>
+    <button id="stopCamera">Stop Camera</button>
+  </div>
+
+  <p>Detected People Count: <span id="cameraCount">--</span></p>
+</div>
+      <!-- Video Upload Widget -->
+      <div class="widget video-upload-widget">
+        <h2>Upload Video</h2>
+        <label for="videoInput" class="upload-label">Choose Video</label>
+        <input type="file" id="videoInput" accept="video/*">
+        <video id="uploadedVideo" controls>
+          <source src="" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+        <p>Detected People Count: <span id="videoCount">--</span></p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Update live camera people count every 1 second
+    async function updatePeopleCount() {
+      try {
+        const res = await fetch(" http://172.19.133.170:5000/count");
+        const data = await res.json();
+        document.getElementById("cameraCount").innerText = data.peopleCount;
+      } catch(err) {
+        console.error("Error fetching count:", err);
+      }
+    }
+    setInterval(updatePeopleCount, 1000);
+
+    const startCamera = document.getElementById('startCamera');
+const stopCamera = document.getElementById('stopCamera');
+
+let streamActive = false;
+
+// Start camera
+startCamera.addEventListener('click', async () => {
+  if (!streamActive) {
+    try {
+      await fetch(' http://172.19.133.170:5000/start_stream', { method: 'POST' });
+      streamActive = true;
+      console.log("Camera stream started");
+    } catch(err) {
+      console.error("Error starting stream:", err);
+    }
+  }
+});
+
+// Stop camera
+stopCamera.addEventListener('click', async () => {
+  if (streamActive) {
+    try {
+      await fetch(' http://172.19.133.170:5000/stop_stream', { method: 'POST' });
+      streamActive = false;
+      console.log("Camera stream stopped");
+    } catch(err) {
+      console.error("Error stopping stream:", err);
+    }
+  }
+});
+
+    // Video upload processing
+    const videoInput = document.getElementById('videoInput');
+    const uploadedVideo = document.getElementById('uploadedVideo');
+
+    videoInput.addEventListener('change', async () => {
+      const file = videoInput.files[0];
+      if (!file) return;
+
+      uploadedVideo.src = URL.createObjectURL(file);
+      uploadedVideo.load();
+      uploadedVideo.play();
+
+      const formData = new FormData();
+      formData.append('file', file);
+
+      try {
+        const res = await fetch('http://172.19.133.170:5000/upload_video', {
+          method: 'POST',
+          body: formData
+        });
+        const data = await res.json();
+        document.getElementById('videoCount').innerText = data.max_count_seen;
+        console.log("Video processed:", data);
+      } catch(err) {
+        console.error("Error uploading video:", err);
+      }
+    });
+  </script>
+</body>
+</html>
