@@ -4,14 +4,30 @@ from flask_cors import CORS
 import cv2
 import threading
 import numpy as np
-from utils.heatmap import generate_heatmap
-from utils.alert import check_crowd_alert
 from ultralytics import YOLO
+import os
+
+# -----------------------------
+# --- Safe Utils Import ---
+# -----------------------------
+try:
+    from utils.heatmap import generate_heatmap
+except Exception as e:
+    print("⚠️ Heatmap import failed:", e)
+    def generate_heatmap(frame, positions): return frame
+
+try:
+    from utils.alert import check_crowd_alert
+except Exception as e:
+    print("⚠️ Alert import failed:", e)
+    def check_crowd_alert(frame_count, count, threshold): return None
 
 # -----------------------------
 # --- YOLO Model ---
 # -----------------------------
 YOLO_WEIGHTS = "models/yolov8n.pt"
+if not os.path.exists(YOLO_WEIGHTS):
+    raise FileNotFoundError(f"Model weights not found at {YOLO_WEIGHTS}")
 model = YOLO(YOLO_WEIGHTS)
 
 # -----------------------------
@@ -27,15 +43,12 @@ latest_count_lock = threading.Lock()
 latest_count = 0
 CROWD_THRESHOLD = 4  # alert threshold
 processing = False   # controls start/stop
-video_source = 0     # default camera
+video_source = 0     # default camera (0 = webcam)
 
 # -----------------------------
-# --- Detection + Streaming ---
+# --- Detection Function ---
 # -----------------------------
 def detect_frame(frame):
-    """
-    Run YOLO on frame, draw boxes + heatmap, return annotated frame and count
-    """
     global latest_count
     results = model(frame)[0]
 
@@ -49,35 +62,39 @@ def detect_frame(frame):
             cv2.rectangle(frame, (x1, y1), (x2, y2), (0,255,0), 2)
             cv2.putText(frame, "Person", (x1, y1-10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0,255,0), 1)
-            person_positions.append((int((x1+x2)/2), int((y1+y2)/2)))
+            person_positions.append(((x1+x2)//2, (y1+y2)//2))
 
-    # alert beep
-    check_crowd_alert(0, person_count, CROWD_THRESHOLD)  # frame_count not needed here
+    # alert check
+    check_crowd_alert(0, person_count, CROWD_THRESHOLD)
 
-    # overlay heatmap
+    # heatmap overlay
     frame = generate_heatmap(frame, person_positions)
 
-    # update latest_count
     with latest_count_lock:
         latest_count = person_count
 
     return frame, person_count
 
+# -----------------------------
+# --- Streaming Generator ---
+# -----------------------------
 def video_generator(source=0):
     cap = cv2.VideoCapture(source)
     if not cap.isOpened():
-        print("Cannot open video source:", source)
-        return
+        print("❌ Cannot open video source:", source)
+        while True:
+            blank = 255 * np.ones((480, 640, 3), dtype=np.uint8)
+            ret, jpeg = cv2.imencode('.jpg', blank)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
 
     global processing
     while True:
         if not processing:
-            # if not processing, send blank frame
-            blank_frame = 255 * np.ones((480, 640, 3), dtype=np.uint8)
-            ret2, jpeg = cv2.imencode('.jpg', blank_frame)
-            frame_bytes = jpeg.tobytes()
+            blank = 255 * np.ones((480, 640, 3), dtype=np.uint8)
+            ret, jpeg = cv2.imencode('.jpg', blank)
             yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                   b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
             continue
 
         ret, frame = cap.read()
@@ -88,10 +105,9 @@ def video_generator(source=0):
         ret2, jpeg = cv2.imencode('.jpg', annotated)
         if not ret2:
             continue
-        frame_bytes = jpeg.tobytes()
 
         yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+               b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
 
     cap.release()
 
