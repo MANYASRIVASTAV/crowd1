@@ -73,4 +73,4 @@ Visualization: Matplotlib
 
 🌍 Why This System Matters
 
-By combining computer vision, social signal analysis, and predictive AI, this system shifts crowd management from reactive monitoring to proactive prevention. It is scalable, cost-effective, and easily integrable with existing infrastructure, making it a practical solution for modern smart-city and public-safety applications.
+By combining computer vision, social signal analysis, and predictive AI, this system shifts crowd management from reactive monitoring to proactive prevention. It is scalable, cost-effective, and easily integrable with existing infrastructure, making it a practical solution for modern smart-city and public-safety applications .
