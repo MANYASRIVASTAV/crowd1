@@ -14,6 +14,7 @@ Sudden spikes in social media hashtags or keywords
 
 Unusual increases in location searches on maps
 
+
 Group pattern analysis such as similar clothing (e.g., team jerseys, uniforms)
 
 Transport accessibility and event-type indicators
